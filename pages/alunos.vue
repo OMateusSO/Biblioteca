@@ -10,29 +10,37 @@
       </div>
 
       <!-- Barra de Pesquisa -->
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Buscar aluno..."
-        class="w-full p-2 border rounded mb-4"
-      />
+      <input v-model="searchQuery" type="text" placeholder="Buscar aluno..." class="w-full p-2 border rounded mb-4" />
 
       <!-- Lista de Alunos com Paginação -->
-      <ul v-if="paginatedStudents.length" class="space-y-2">
-        <li v-for="student in paginatedStudents" :key="student.id" class="p-2 border rounded flex justify-between">
-          <span>{{ student.nome }} - {{ student.matricula }} - Turma: {{ student.turma }} Email: {{ student.email }}</span>
-          <span class="text-sm text-gray-500">{{ student.contato }}</span>
+      <ul v-if="paginatedStudents.length" class="space-y-4">
+        <li v-for="student in paginatedStudents" :key="student.id"
+          class="p-4 bg-white rounded-lg shadow-md flex justify-between items-center border border-gray-200">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">{{ student.nome }}</h3>
+            <p class="text-sm text-gray-600">
+              Matrícula: <span class="font-medium">{{ student.matricula }}</span> |
+              Turma: <span class="font-medium">{{ student.turma }}</span>
+            </p>
+          </div>
+          <div class="text-right text-sm text-gray-500">
+            <p>Email: <span class="font-medium text-gray-700">{{ student.email }}</span></p>
+            <p>Contato: <span class="font-medium text-gray-700">{{ student.contato }}</span></p>
+          </div>
         </li>
       </ul>
+
       <p v-else class="text-gray-500 text-center">Nenhum aluno encontrado.</p>
 
       <!-- Controles de Paginação -->
       <div v-if="totalPages > 1" class="flex justify-between items-center mt-4">
-        <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+        <button @click="prevPage" :disabled="currentPage === 1"
+          class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Anterior
         </button>
         <span>Página {{ currentPage }} de {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+        <button @click="nextPage" :disabled="currentPage === totalPages"
+          class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Próximo
         </button>
       </div>
@@ -45,10 +53,12 @@
         <form @submit.prevent="addStudent">
           <div class="grid grid-cols-1 gap-4">
             <input v-model="newStudent.nome" type="text" placeholder="Nome" class="p-2 border rounded" required />
-            <input v-model="newStudent.matricula" type="text" placeholder="Matrícula" class="p-2 border rounded" required />
+            <input v-model="newStudent.matricula" type="text" placeholder="Matrícula" class="p-2 border rounded"
+              required />
             <input v-model="newStudent.turma" type="text" placeholder="Turma" class="p-2 border rounded" required />
-            <input v-model="newStudent.contato" type="text" placeholder="Telefone" class="p-2 border rounded" required />
-            <input v-model="newStudent.Email" type="text" placeholder="Email" class="p-2 border rounded" required />
+            <input v-model="newStudent.contato" type="text" placeholder="Telefone" class="p-2 border rounded"
+              required />
+            <input v-model="newStudent.email" type="text" placeholder="Email" class="p-2 border rounded" required />
           </div>
           <div class="flex justify-between mt-4">
             <button type="button" @click="closeModal" class="p-2 bg-gray-400 text-white rounded">Cancelar</button>
@@ -75,7 +85,7 @@ export default {
       },
       students: [], // Simulação do banco de dados local
       currentPage: 1,
-      studentsPerPage: 9
+      studentsPerPage: 8
     };
   },
   computed: {

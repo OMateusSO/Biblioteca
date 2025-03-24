@@ -1,0 +1,8 @@
+methods: {
+    addLoan() {
+      if (!this.newLoan.aluno || !this.newLoan.livro || !this.newLoan.dataEmprestimo) return;
+      const newEntry = { ...this.newLoan, id: Date.now() };
+      this.loans.push(newEntry);
+      this.newLoan = { aluno: "", livro: "", dataEmprestimo: "", dataDevolucao: "" };
+      this.showModal = false;
+    },

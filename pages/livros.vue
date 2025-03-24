@@ -10,29 +10,36 @@
       </div>
 
       <!-- Barra de Pesquisa -->
-      <input
-        v-model="searchQuery"
-        type="text"
-        placeholder="Buscar livro..."
-        class="w-full p-2 border rounded mb-4"
-      />
+      <input v-model="searchQuery" type="text" placeholder="Buscar livro..." class="w-full p-2 border rounded mb-4" />
 
       <!-- Lista de Livros com Paginação -->
-      <ul v-if="paginatedBooks.length" class="space-y-2">
-        <li v-for="book in paginatedBooks" :key="book.id" class="p-2 border rounded flex justify-between">
-          <span>{{ book.titulo }} - {{ book.autor }} ({{ book.ano_publicacao || 'Sem ano' }})</span>
-          <span class="text-sm text-gray-500">{{ book.isbn || 'Sem ISBN' }}</span>
+      <ul v-if="paginatedBooks.length" class="space-y-4">
+        <li v-for="book in paginatedBooks" :key="book.id"
+          class="p-4 bg-white rounded-lg shadow-md flex justify-between items-center border border-gray-200">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">{{ book.titulo }}</h3>
+            <p class="text-sm text-gray-600">
+              Autor: <span class="font-medium">{{ book.autor }}</span> |
+              Ano: <span class="font-medium">{{ book.ano_publicacao || 'Sem ano' }}</span>
+            </p>
+          </div>
+          <div class="text-right text-sm text-gray-500">
+            <p>ISBN: <span class="font-medium text-gray-700">{{ book.isbn || 'Sem ISBN' }}</span></p>
+          </div>
         </li>
       </ul>
+
       <p v-else class="text-gray-500 text-center">Nenhum livro encontrado.</p>
 
       <!-- Controles de Paginação -->
       <div v-if="totalPages > 1" class="flex justify-between items-center mt-4">
-        <button @click="prevPage" :disabled="currentPage === 1" class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+        <button @click="prevPage" :disabled="currentPage === 1"
+          class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Anterior
         </button>
         <span>Página {{ currentPage }} de {{ totalPages }}</span>
-        <button @click="nextPage" :disabled="currentPage === totalPages" class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
+        <button @click="nextPage" :disabled="currentPage === totalPages"
+          class="px-4 py-2 bg-gray-300 rounded disabled:opacity-50">
           Próximo
         </button>
       </div>
@@ -46,7 +53,8 @@
           <div class="grid grid-cols-1 gap-4">
             <input v-model="newBook.titulo" type="text" placeholder="Título" class="p-2 border rounded" required />
             <input v-model="newBook.autor" type="text" placeholder="Autor" class="p-2 border rounded" required />
-            <input v-model="newBook.ano_publicacao" type="number" placeholder="Ano de Publicação" class="p-2 border rounded" />
+            <input v-model="newBook.ano_publicacao" type="number" placeholder="Ano de Publicação"
+              class="p-2 border rounded" />
             <input v-model="newBook.isbn" type="text" placeholder="ISBN" class="p-2 border rounded" />
           </div>
           <div class="flex justify-between mt-4">
@@ -73,7 +81,7 @@ export default {
       },
       books: [], // Simulação do banco de dados local
       currentPage: 1,
-      booksPerPage: 9
+      booksPerPage: 8
     };
   },
   computed: {
