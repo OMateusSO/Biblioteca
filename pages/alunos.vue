@@ -25,7 +25,7 @@
           </div>
           <div class="text-right text-sm text-gray-500">
             <p>Email: <span class="font-medium text-gray-700">{{ student.email }}</span></p>
-            <p>Contato: <span class="font-medium text-gray-700">{{ student.contato }}</span></p>
+            <p>telefone: <span class="font-medium text-gray-700">{{ student.telefone }}</span></p>
           </div>
         </li>
       </ul>
@@ -56,7 +56,7 @@
             <input v-model="newStudent.matricula" type="text" placeholder="Matrícula" class="p-2 border rounded"
               required />
             <input v-model="newStudent.turma" type="text" placeholder="Turma" class="p-2 border rounded" required />
-            <input v-model="newStudent.contato" type="text" placeholder="Telefone" class="p-2 border rounded"
+            <input v-model="newStudent.telefone" type="text" placeholder="Telefone" class="p-2 border rounded"
               required />
             <input v-model="newStudent.email" type="text" placeholder="Email" class="p-2 border rounded" required />
           </div>
@@ -80,13 +80,16 @@ export default {
         nome: "",
         matricula: "",
         turma: "",
-        contato: "",
+        telefone: "",
         email: ""
       },
-      students: [], // Simulação do banco de dados local
+      students: [],
       currentPage: 1,
       studentsPerPage: 8
     };
+  },
+  async mounted() {
+    await this.fetchStudents();
   },
   computed: {
     filteredStudents() {
@@ -99,33 +102,48 @@ export default {
     },
     paginatedStudents() {
       const start = (this.currentPage - 1) * this.studentsPerPage;
-      const end = start + this.studentsPerPage;
-      return this.filteredStudents.slice(start, end);
+      return this.filteredStudents.slice(start, start + this.studentsPerPage);
     }
   },
   methods: {
+    async fetchStudents() {
+      try {
+        const response = await fetch("/api/alunos");
+        this.students = await response.json();
+      } catch (error) {
+        console.error("Erro ao buscar alunos:", error);
+      }
+    },
     openModal() {
       this.showModal = true;
     },
     closeModal() {
       this.showModal = false;
     },
-    addStudent() {
+    async addStudent() {
       if (!this.newStudent.nome || !this.newStudent.matricula) return;
-      const newEntry = { ...this.newStudent, id: Date.now() };
-      this.students.push(newEntry);
-      this.newStudent = { nome: "", matricula: "", turma: "", contato: "" };
-      this.closeModal();
+
+      try {
+        const response = await fetch("/api/alunos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.newStudent)
+        });
+
+        if (response.ok) {
+          await this.fetchStudents();
+          this.closeModal();
+          this.newStudent = { nome: "", matricula: "", turma: "", telefone: "", email: "" };
+        }
+      } catch (error) {
+        console.error("Erro ao adicionar aluno:", error);
+      }
     },
     prevPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-      }
+      if (this.currentPage > 1) this.currentPage--;
     },
     nextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-      }
+      if (this.currentPage < this.totalPages) this.currentPage++;
     }
   }
 };

@@ -29,16 +29,16 @@
         <li v-for="loan in paginatedLoans" :key="loan.id"
           class="p-4 bg-white rounded-lg shadow-md flex justify-between items-center border border-gray-200">
           <div>
-            <h3 class="text-lg font-semibold text-gray-900">{{ loan.aluno }}</h3>
+            <h3 class="text-lg font-semibold text-gray-900">{{ loan.aluno.nome }}</h3>
             <p class="text-sm text-gray-600">
-              Pegou: <span class="font-medium">"{{ loan.livro }}"</span> em
+              Pegou: <span class="font-medium">"{{ loan.livro.titulo }}"</span> em
               <span class="font-medium">{{ formatDate(loan.dataEmprestimo) }}</span>
             </p>
           </div>
           <div class="text-right text-sm">
             <p>Devolução:
               <span :class="isLate(loan) ? 'text-red-500 font-medium' : 'text-gray-700'">
-                {{ loan.dataDevolucao ? formatDate(loan.dataDevolucao) : formatDate(loan.dataProgramada) }}
+                {{ formatDate(loan.dataDevolucao) }}
               </span>
             </p>
           </div>
@@ -66,15 +66,39 @@
       <div class="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
         <h2 class="text-xl font-bold mb-4">Novo Empréstimo</h2>
         <form @submit.prevent="addLoan">
-          <div class="grid grid-cols-1 gap-4">
-            <input v-model="newLoan.aluno" type="text" placeholder="Nome do aluno" class="p-2 border rounded"
-              required />
-            <input v-model="newLoan.livro" type="text" placeholder="Título do livro" class="p-2 border rounded"
-              required />
-            <p>Emprestimo</p>
-            <input v-model="newLoan.dataEmprestimo" type="date" class="p-2 border rounded" required />
+          <div class="grid grid-cols-1 gap-4 relative">
+            <!-- Campo da Matrícula -->
+            <div class="relative">
+              <input v-model="newLoan.matricula" type="text" placeholder="Matrícula do aluno"
+                class="p-2 border rounded w-full" @input="matriculaError = ''" required />
+              <div v-if="matriculaError"
+                class="absolute left-0 mt-1 text-sm text-red-600 bg-red-100 border border-red-400 p-2 rounded shadow">
+                {{ matriculaError }}
+              </div>
+            </div>
+
+            <!-- Combobox Pesquisável -->
+            <div class="relative">
+              <div class="relative">
+                <input v-model="livroSearchQuery" @focus="dropdownOpen = true" @blur="closeDropdown"
+                  @keydown.down.prevent="navigate(1)" @keydown.up.prevent="navigate(-1)"
+                  @keydown.enter.prevent="selectLivro(filteredLivros[selectedIndex])" type="text"
+                  placeholder="Selecione um livro" class="p-2 border rounded w-full" />
+
+                <!-- Dropdown -->
+                <div v-if="dropdownOpen" class="absolute z-10 w-full bg-white border rounded shadow-md mt-1">
+                  <div v-for="(livro, index) in filteredLivros" :key="livro.id" @mousedown.prevent="selectLivro(livro)"
+                    :class="selectedIndex === index ? 'bg-blue-100' : 'bg-white'"
+                    class="p-2 cursor-pointer hover:bg-blue-100">
+                    {{ livro.titulo }}
+                  </div>
+                  <div v-if="filteredLivros.length === 0" class="p-2 text-gray-500">Nenhum livro encontrado.</div>
+                </div>
+              </div>
+            </div>
+
             <p>Devolução Programada</p>
-            <input v-model="newLoan.dataProgramada" type="date" class="p-2 border rounded" required />
+            <input v-model="newLoan.dataDevolucao" type="date" class="p-2 border rounded w-full" required />
           </div>
           <div class="flex justify-between mt-4">
             <button type="button" @click="showModal = false"
@@ -92,70 +116,127 @@ export default {
   data() {
     return {
       activeTab: "pendentes",
-      searchQuery: "",
-      newLoan: { aluno: "", livro: "", dataEmprestimo: "", dataProgramada: "", dataDevolucao: "" },
-      loans: [
-        { id: 1, aluno: "João Silva", livro: "O Senhor dos Anéis", dataEmprestimo: "2025-03-01", dataProgramada: "2025-03-10", dataDevolucao: "" },
-        { id: 2, aluno: "Maria Souza", livro: "Harry Potter", dataEmprestimo: "2025-02-20", dataProgramada: "2025-02-28", dataDevolucao: "2025-02-28" },
-        { id: 3, aluno: "Pedro Almeida", livro: "O Pequeno Príncipe", dataEmprestimo: "2025-03-05", dataProgramada: "2025-03-15", dataDevolucao: "" },
-        { id: 4, aluno: "Lucas Santos", livro: "Dom Casmurro", dataEmprestimo: "2025-02-15", dataProgramada: "2025-02-25", dataDevolucao: "" }, // Atrasado
-      ],
+      searchQuery: "", 
+      livroSearchQuery: "", 
+      newLoan: { alunoId: "", livroId: "", dataEmprestimo: new Date().toISOString().split("T")[0], dataDevolucao: "" },
+      loans: [],
+      livros: [],
+      dropdownOpen: false,
+      selectedIndex: -1,
       showModal: false,
       currentPage: 1,
-      itemsPerPage: 5,
+      itemsPerPage: 4,
+      matriculaError: "",
     };
   },
   computed: {
+    filteredLivros() {
+      if (!this.livroSearchQuery) return this.livros;
+      return this.livros.filter(livro =>
+        livro.titulo.toLowerCase().includes(this.livroSearchQuery.toLowerCase())
+      );
+    },
     filteredLoans() {
-      const today = new Date().toISOString().split("T")[0];
+      return this.loans.filter((loan) => {
+        const hoje = new Date();
+        const dataDevolucao = new Date(loan.dataDevolucao);
 
-      return this.loans
-        .filter(loan => {
-          const isPendente = !loan.dataDevolucao;
-          const isAtrasado = isPendente && loan.dataProgramada < today;
+        if (this.activeTab === "pendentes") {
+          return dataDevolucao >= hoje;
+        } else if (this.activeTab === "atrasados") {
+          return dataDevolucao < hoje;
+        }
 
-          if (this.activeTab === "pendentes") return isPendente && !isAtrasado;
-          if (this.activeTab === "atrasados") return isAtrasado;
-
-          return false;
-        })
-        .filter(loan =>
-          loan.aluno.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
-          loan.livro.toLowerCase().includes(this.searchQuery.toLowerCase())
-        );
+        return true;
+      });
+    },
+    paginatedLoans() {
+      const start = (this.currentPage - 1) * this.itemsPerPage;
+      const end = start + this.itemsPerPage;
+      return this.filteredLoans.slice(start, end);
     },
     totalPages() {
       return Math.ceil(this.filteredLoans.length / this.itemsPerPage);
     },
-    paginatedLoans() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      return this.filteredLoans.slice(start, start + this.itemsPerPage);
-    }
   },
   methods: {
-    addLoan() {
-      if (!this.newLoan.aluno || !this.newLoan.livro || !this.newLoan.dataEmprestimo || !this.newLoan.dataProgramada) return;
-
-      const newEntry = { ...this.newLoan, id: Date.now(), dataDevolucao: "" };
-      this.loans.push(newEntry);
-      this.newLoan = { aluno: "", livro: "", dataEmprestimo: "", dataProgramada: "", dataDevolucao: "" };
-      this.showModal = false;
+    async fetchLoans() {
+      try {
+        const response = await fetch("/api/emprestimos");
+        const data = await response.json();
+        this.loans = data;
+      } catch (error) {
+        console.error("Erro ao buscar empréstimos:", error);
+      }
     },
-    isLate(loan) {
-      const today = new Date().toISOString().split("T")[0];
-      return !loan.dataDevolucao && loan.dataProgramada < today;
+    async fetchLivros() {
+      try {
+        const response = await fetch("/api/livros");
+        this.livros = await response.json();
+      } catch (error) {
+        console.error("Erro ao buscar livros:", error);
+      }
+    },
+    selectLivro(livro) {
+      if (livro) {
+        this.livroSearchQuery = livro.titulo;
+        this.newLoan.livroId = livro.id;
+      }
+      this.dropdownOpen = false;
+    },
+    navigate(direction) {
+      if (!this.dropdownOpen) return;
+      this.selectedIndex = Math.min(
+        Math.max(this.selectedIndex + direction, 0),
+        this.filteredLivros.length - 1
+      );
+    },
+    closeDropdown() {
+      setTimeout(() => {
+        this.dropdownOpen = false;
+      }, 200);
+    },
+    async addLoan() {
+      if (!this.newLoan.matricula || !this.newLoan.livroId || !this.newLoan.dataDevolucao) {
+        this.matriculaError = "Preencha todos os campos.";
+        return;
+      }
+      try {
+        const alunoResponse = await fetch(`/api/alunos/${this.newLoan.matricula}`);
+        if (!alunoResponse.ok) {
+          this.matriculaError = "Matrícula não encontrada!";
+          return;
+        }
+        const response = await fetch("/api/emprestimos", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.newLoan),
+        });
+        if (response.ok) {
+          this.showModal = false;
+          this.newLoan = { matricula: "", livroId: "", dataEmprestimo: "", dataDevolucao: "" };
+          this.fetchLoans();
+        }
+      } catch (error) {
+        console.error("Erro na requisição:", error);
+      }
     },
     formatDate(date) {
-      if (!date) return "Pendente";
-      const [year, month, day] = date.split("-");
-      return `${day}/${month}/${year}`;
+      return new Date(date).toLocaleDateString("pt-BR");
+    },
+    isLate(loan) {
+      return new Date(loan.dataDevolucao) < new Date();
     },
     prevPage() {
       if (this.currentPage > 1) this.currentPage--;
     },
     nextPage() {
       if (this.currentPage < this.totalPages) this.currentPage++;
-    }
-  }
+    },
+  },
+  mounted() {
+    this.fetchLoans();
+    this.fetchLivros();
+  },
 };
 </script>

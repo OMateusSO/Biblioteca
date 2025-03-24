@@ -73,3 +73,15 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+
+npx prisma studio =======> para ver banco de dados
+
+npx prisma migrate reset ========> sempre que alguma alteração importante for feita no banco de dados.
+npx prisma migrate dev --name adiciona_matricula_turma
+npx prisma generate
+
+cd "C:\Program Files\MySQL\MySQL Server 8.0\bin" 
+
+mysql -u biblioteca_adm -p
+123

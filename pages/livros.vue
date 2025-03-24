@@ -79,7 +79,7 @@ export default {
         ano_publicacao: "",
         isbn: ""
       },
-      books: [], // Simulação do banco de dados local
+      books: [], // Lista de livros carregada do banco de dados
       currentPage: 1,
       booksPerPage: 8
     };
@@ -106,13 +106,39 @@ export default {
     closeModal() {
       this.showModal = false;
     },
-    addBook() {
-      if (!this.newBook.titulo || !this.newBook.autor) return;
-      const newEntry = { ...this.newBook, id: Date.now() };
-      this.books.push(newEntry);
-      this.newBook = { titulo: "", autor: "", ano_publicacao: "", isbn: "" };
-      this.closeModal();
+
+    async fetchBooks() {
+      try {
+        const response = await fetch("/api/livros"); // Busca os livros do backend
+        if (!response.ok) throw new Error("Erro ao carregar livros");
+        
+        this.books = await response.json(); // Atualiza a lista de livros
+        console.log("Livros carregados:", this.books); // Verifique se os livros estão vindo corretamente
+      } catch (error) {
+        console.error("Erro ao buscar livros:", error);
+      }
     },
+
+    async addBook() {
+      if (!this.newBook.titulo || !this.newBook.autor) return;
+
+      try {
+        const response = await fetch("/api/livros", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(this.newBook),
+        });
+
+        if (!response.ok) throw new Error("Erro ao adicionar livro");
+
+        await this.fetchBooks(); // Atualiza a lista de livros depois de adicionar um novo
+        this.newBook = { titulo: "", autor: "", ano_publicacao: "", isbn: "" };
+        this.closeModal();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+
     prevPage() {
       if (this.currentPage > 1) {
         this.currentPage--;
@@ -123,6 +149,10 @@ export default {
         this.currentPage++;
       }
     }
+  },
+  mounted() {
+    this.fetchBooks(); // Carrega os livros assim que a página for carregada
   }
 };
+
 </script>
