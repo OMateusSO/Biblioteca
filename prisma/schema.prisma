@@ -24,7 +24,7 @@ model Livro {
   autor          String
   ano_publicacao Int?
   isbn           String?  @unique
-  // emprestado     Boolean  @default(false) 
+  emprestado     Boolean  @default(false) 
   emprestimos    Emprestimo[]
 }
 

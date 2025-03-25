@@ -116,8 +116,8 @@ export default {
   data() {
     return {
       activeTab: "pendentes",
-      searchQuery: "", 
-      livroSearchQuery: "", 
+      searchQuery: "", // Mantido para buscar empréstimos na lista principal
+      livroSearchQuery: "", // Novo campo para pesquisa de livros no combobox
       newLoan: { alunoId: "", livroId: "", dataEmprestimo: new Date().toISOString().split("T")[0], dataDevolucao: "" },
       loans: [],
       livros: [],
@@ -137,18 +137,24 @@ export default {
       );
     },
     filteredLoans() {
-      return this.loans.filter((loan) => {
-        const hoje = new Date();
-        const dataDevolucao = new Date(loan.dataDevolucao);
+      return this.loans
+        .filter((loan) => {
+          const hoje = new Date();
+          const dataDevolucao = new Date(loan.dataDevolucao);
 
-        if (this.activeTab === "pendentes") {
-          return dataDevolucao >= hoje;
-        } else if (this.activeTab === "atrasados") {
-          return dataDevolucao < hoje;
-        }
+          if (this.activeTab === "pendentes" && dataDevolucao < hoje) {
+            return false;
+          } else if (this.activeTab === "atrasados" && dataDevolucao >= hoje) {
+            return false;
+          }
 
-        return true;
-      });
+          // Lógica de pesquisa por aluno ou livro
+          const searchLower = this.searchQuery.toLowerCase();
+          return (
+            loan.aluno.nome.toLowerCase().includes(searchLower) ||
+            loan.livro.titulo.toLowerCase().includes(searchLower)
+          );
+        });
     },
     paginatedLoans() {
       const start = (this.currentPage - 1) * this.itemsPerPage;
@@ -178,18 +184,15 @@ export default {
       }
     },
     selectLivro(livro) {
-      if (livro) {
-        this.livroSearchQuery = livro.titulo;
-        this.newLoan.livroId = livro.id;
-      }
+      if (!livro) return;
+
+      this.livroSearchQuery = livro.titulo;
+      this.newLoan.livroId = livro.id;
       this.dropdownOpen = false;
     },
     navigate(direction) {
-      if (!this.dropdownOpen) return;
-      this.selectedIndex = Math.min(
-        Math.max(this.selectedIndex + direction, 0),
-        this.filteredLivros.length - 1
-      );
+      if (!this.dropdownOpen || this.filteredLivros.length === 0) return;
+      this.selectedIndex = (this.selectedIndex + direction + this.filteredLivros.length) % this.filteredLivros.length;
     },
     closeDropdown() {
       setTimeout(() => {
@@ -197,25 +200,27 @@ export default {
       }, 200);
     },
     async addLoan() {
-      if (!this.newLoan.matricula || !this.newLoan.livroId || !this.newLoan.dataDevolucao) {
-        this.matriculaError = "Preencha todos os campos.";
-        return;
-      }
+      if (!this.newLoan.matricula || !this.newLoan.livroId || !this.newLoan.dataDevolucao) return;
+
       try {
-        const alunoResponse = await fetch(`/api/alunos/${this.newLoan.matricula}`);
-        if (!alunoResponse.ok) {
-          this.matriculaError = "Matrícula não encontrada!";
-          return;
-        }
         const response = await fetch("/api/emprestimos", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(this.newLoan),
+          body: JSON.stringify({
+            matricula: this.newLoan.matricula, // Usando matrícula em vez de ID
+            livroId: Number(this.newLoan.livroId),
+            dataEmprestimo: this.newLoan.dataEmprestimo,
+            dataDevolucao: new Date(this.newLoan.dataDevolucao).toISOString().split("T")[0]
+          }),
         });
-        if (response.ok) {
+
+        const newEntry = await response.json();
+        if (!newEntry.error) {
           this.showModal = false;
           this.newLoan = { matricula: "", livroId: "", dataEmprestimo: "", dataDevolucao: "" };
           this.fetchLoans();
+        } else {
+          console.error("Erro ao adicionar empréstimo:", newEntry.error);
         }
       } catch (error) {
         console.error("Erro na requisição:", error);

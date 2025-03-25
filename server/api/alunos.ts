@@ -4,10 +4,24 @@ const prisma = new PrismaClient();
 
 export default defineEventHandler(async (event) => {
   try {
-    if (event.method === "GET") {
+    const { method } = event.node.req;
+    const { matricula } = event.context.params || {};
+
+    if (method === "GET") {
+      if (matricula) {
+        // Buscar aluno pela matrícula
+        const aluno = await prisma.aluno.findUnique({
+          where: { matricula },
+        });
+
+        if (!aluno) {
+          throw createError({ statusCode: 404, statusMessage: "Aluno não encontrado" });
+        }
+
+        return aluno;
+      }
       return await prisma.aluno.findMany();
-    } 
-    else if (event.method === "POST") {
+    } else if (method === "POST") {
       const body = await readBody(event);
       if (!body.nome || !body.matricula || !body.turma) {
         throw createError({ statusCode: 400, statusMessage: "Dados incompletos" });
