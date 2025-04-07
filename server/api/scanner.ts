@@ -8,19 +8,26 @@ export default defineEventHandler(async (event) => {
     try {
       const body = await readBody(event);
 
-      // Buscar aluno pela matrícula
       const alunoExistente = await prisma.aluno.findUnique({
-        where: { matricula: body.matricula },
+        where: { id: body.alunoId },
       });
-
+      
       if (!alunoExistente) {
         return { error: "Aluno não encontrado" };
       }
 
+      // Verifique se o alunoId foi passado corretamente
+      if (!body.alunoId || isNaN(body.alunoId)) {
+        return { error: "Aluno ID inválido" };
+      }
+
+
+
       // Verificar se o livro existe
       const livroExistente = await prisma.livro.findUnique({
-        where: { id: body.livroId },
+        where: { id: parseInt(body.livroId, 10) }, // Certifique-se de converter para número
       });
+
 
       if (!livroExistente) {
         return { error: "Livro não encontrado" };
@@ -72,7 +79,7 @@ export default defineEventHandler(async (event) => {
           }
         },
       });
-  
+
       return emprestimos;
     } catch (error) {
       console.error("Erro ao buscar empréstimos:", error);

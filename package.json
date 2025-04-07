@@ -10,10 +10,13 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
-    "@nuxtjs/tailwindcss": "^6.13.2",
     "@prisma/client": "^6.5.0",
+    "html5-qrcode": "^2.3.8",
     "nuxt": "^3.16.1",
+    "qr-scanner": "^1.4.2",
+    "qrcode": "^1.5.4",
     "vue": "^3.5.13",
+    "vue-qrcode-reader": "^5.7.1",
     "vue-router": "^4.5.0"
   },
   "description": "Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.",
@@ -22,6 +25,10 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.13.2",
+    "autoprefixer": "^10.4.21",
+    "electron": "^35.1.2",
+    "postcss": "^8.5.3",
     "prisma": "^6.5.0"
   }
 }

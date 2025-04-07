@@ -8,33 +8,32 @@ datasource db {
 }
 
 model Aluno {
-  id          Int     @id @default(autoincrement())
+  id          Int          @id @default(autoincrement())
   nome        String
-  matricula   String  @unique
-  turma       String  // Adicionado
-  email       String  @unique
+  matricula   String       @unique
+  turma       String // Adicionado
+  email       String       @unique
   telefone    String?
   emprestimos Emprestimo[]
 }
-
 
 model Livro {
   id             Int      @id @default(autoincrement())
   titulo         String
   autor          String
-  ano_publicacao Int?
-  isbn           String?  @unique
-  emprestado     Boolean  @default(false) 
+  ano_publicacao Int
+  isbn           String
+  emprestado     Boolean  @default(false)
+  qrcode         String?  // Definido como opcional para refletir o banco de dados
   emprestimos    Emprestimo[]
 }
 
-
 model Emprestimo {
-  id            Int      @id @default(autoincrement())
-  alunoId       Int
-  livroId       Int
-  dataEmprestimo DateTime @default(now())
-  dataDevolucao DateTime?
-  aluno         Aluno    @relation(fields: [alunoId], references: [id])
-  livro         Livro    @relation(fields: [livroId], references: [id])
+  id             Int       @id @default(autoincrement())
+  alunoId        Int
+  livroId        Int
+  dataEmprestimo DateTime  @default(now())
+  dataDevolucao  DateTime?
+  aluno          Aluno     @relation(fields: [alunoId], references: [id])
+  livro          Livro     @relation(fields: [livroId], references: [id])
 }

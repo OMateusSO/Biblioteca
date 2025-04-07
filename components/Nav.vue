@@ -1,26 +1,5 @@
 <template>
   <div>
-    <!-- Sidebar -->
-    <div
-      :class="[
-        'fixed left-0 top-0 h-full w-64 bg-gray-800 text-white transform transition-transform md:translate-x-0',
-        isOpen ? 'translate-x-0' : '-translate-x-64'
-      ]"
-    >
-      <div class="p-4 text-xl font-bold border-b border-gray-700 flex justify-between items-center">
-        <div class="p-0.5">
-          <NuxtLink to="/">Biblioteca</NuxtLink>
-        </div>
-        <button @click="toggleSidebar" class="text-white md:hidden">
-        </button>
-      </div>
-      <nav class="mt-4">
-        <NuxtLink to="/livros" class="block px-4 py-2 hover:bg-gray-700">📚 Livros</NuxtLink>
-        <NuxtLink to="/emprestimos" class="block px-4 py-2 hover:bg-gray-700">📖 Empréstimos</NuxtLink>
-        <NuxtLink to="/alunos" class="block px-4 py-2 hover:bg-gray-700">👤 Aluno</NuxtLink>
-      </nav>
-    </div>
-
     <!-- Conteúdo principal -->
     <div class="flex-1 flex flex-col">
       <nav class="flex items-center justify-between p-4 sm:px-16 bg-white shadow-md">

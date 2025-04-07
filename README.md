@@ -83,5 +83,20 @@ npx prisma generate
 
 cd "C:\Program Files\MySQL\MySQL Server 8.0\bin" 
 
+"C:\Program Files\MySQL\MySQL Server 8.0\bin/my.ini"
+
+
 mysql -u biblioteca_adm -p
+
 123
+
+
+proximos passos
+
+
+-adicionar mais pesquisas.
+-adicionar filtro.
+-alterar tudo para uma tabela.
+(com alterar e deletar)
+-criar categorias.
+-remover nuxt-devtools-container
